@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gym_management/utils/constans/color_extention.dart';
+
 import 'package:gym_management/utils/constans/image_constans.dart';
 import 'package:gym_management/view/login/on_boarding_screen.dart';
 
@@ -14,7 +14,9 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _animation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _opacityAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
@@ -27,8 +29,19 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
     );
 
-    // Create a fade animation
-    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
+    // Define animations
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.5), // Start slightly off-screen
+      end: Offset.zero, // End at the original position
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     // Start the animation
     _controller.forward();
@@ -63,10 +76,16 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       body: Center(
         child: FadeTransition(
-          opacity: _animation,
-          child: Image.asset(
-            ImageConstans.splashScreenLogo,
-            width: context.width * 0.65,
+          opacity: _opacityAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: Image.asset(
+                ImageConstans.splashScreenLogo,
+                width: MediaQuery.of(context).size.width * 0.65,
+              ),
+            ),
           ),
         ),
       ),
